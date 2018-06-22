@@ -72,7 +72,7 @@ def model_server(model):
             assert prediction.size == 200
             prediction = np.argmax(prediction)
         prediction = int(prediction)
-        assert 0 <= prediction < 200
+        assert 0 <= prediction < 255
         return prediction
 
     _predict = _wrap(_predict, ['prediction'])
