@@ -22,7 +22,7 @@ from .logger import logger
 # the number of max requests to predict for this model run
 # based on the # of images to predict
 number_of_max_predictions = int(os.environ.get('NUM_OF_IMAGES', 100)) * 1000
-
+DEFAULT_BOUNDS = (0, 255)
 
 def model_server(model):
     """Starts an HTTP server that provides access to a Foolbox model.
@@ -48,12 +48,12 @@ def model_server(model):
     try:
         bounds = model.bounds()
     except AttributeError:
-        bounds = (0, 255)
-        logger.info('model has no bounds method, assuming (0, 255)')
+        bounds = DEFAULT_BOUNDS
+        logger.info('model has no bounds method, assuming {}'.format(bounds))
 
-    assert bounds == (0, 255), (
-        'bounds must be (0, 255), update your model or use the preprocessing '
-        'argument of foolbox model wrappers')
+    assert bounds == DEFAULT_BOUNDS, (
+        'bounds must be {}, update your model or use the preprocessing '
+        'argument of foolbox model wrappers'.format(DEFAULT_BOUNDS))
 
     def _predict(image):
         assert isinstance(image, np.ndarray)
@@ -72,7 +72,7 @@ def model_server(model):
             assert prediction.size == 200
             prediction = np.argmax(prediction)
         prediction = int(prediction)
-        assert 0 <= prediction < 255
+        assert bounds[0] <= prediction < bounds[-1]
         return prediction
 
     _predict = _wrap(_predict, ['prediction'])
